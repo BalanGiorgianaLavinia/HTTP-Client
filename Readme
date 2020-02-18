@@ -1,0 +1,80 @@
+----------Balan Giorgiana-Lavinia-------------
+---------------TEMA 3 PC----------------------
+----------------321CB-------------------------
+
+
+	Pentru implementarea acestei teme am folosit libraria "Parson" sugerata 
+in enunt si laboratoarele de http, respectiv dns.
+	
+	Din laboratorul de HTTP am pastrat functiile ajutatoare din helpers,
+in client.c am sters aproape tot, mai putin o conectare si cerere de tip GET
+catre server si retinerea raspunsului.
+	In helpers.c nu am facut nicio modificare, dar in requests.c am modificat
+cele doua functii care compun mesajul final de trimis catre server. Am adaugat
+si campurile header si cookies in cererea de tip GET, respectiv form_data, 
+tipul cererii, headers si cookies in cererea de tip POST.
+	
+
+
+	Primul pas pe care l-am facut a fost sa modific laboratorul de HTTP astfel
+incat sa se conecteze la serverul temei, pe portul specificat, si sa trimita
+o cerere de tip GET cu url-ul "/task1/start", fara parametrii url, headere si
+cookies.
+
+	Dupa ce am primit raspunsul de la server a fost necesar sa integrez
+libraria Parson pentru a ma pregati de parsarea json-ului.
+	Prima data impart raspunsul in linii si verific ce linii contin cuvintele
+"Set-Cookie: " si "{" pentru a stii cand linia contine cookie, respectiv JSON-ul.
+	Intr-un while, pana cand strtok intoarce NULL, concatenez fiecare cookie
+curent intr-un buffer, acestea fiind despartite prin "; ". Cand stiu ca am JSON
+pe acea linie, folosesc functia "json_parse_string()" pe linia curenta si imi va
+intoarce o referinta la JSON-ul parsat. Pe aceasta referinta o transform intr-un
+obiect pe care il pot interoga. Apoi extrag valorile de care am nevoie cu
+functia "json_object_get_string()" si concatenez parametrii url intr-un buffer
+numit content. Cheile si valorile pentru parametrii URL le formez intr-un for
+pe obiectele din campul "data", iar concatenarea acestora este salvata in
+url_params. Urmatorul pas pe care il fac este sa compun mesajul, in functie
+de tipul cererii (GET sau POST) mentionate in campul "method" din JSON. 
+La final eliberez memoria alocata in functiile care compun mesajul.
+	
+
+
+
+	Pentru a trimite serverului noul mesaj este nevoie sa redeschid socket-ul
+pe acelasi IP si PORT. Apoi voi trimite mesajul, retin raspunsul si inchid
+socket-ul, la fel ca la prima cerere GET si asemenea celor ce urmeaza sa le fac.
+	La urmatorul task folosesc aceiasi pasi pentru a parsa cookieurile, JSON-ul
+si sa extrag campurile necesare.
+	Pentru urmatoarea cerere header-ul din mesaj va fi in formatul 
+	"Authorization: Basic <token-ul luat din JSON>"
+	Parametrii url-ului se formeaza asemenea etapei precedente, doar
+ca se vor extrage cheile si valorile din obiectul "queryParams".
+	Dupa compunerea mesajului trimit mesajul catre server si astept raspuns.
+
+
+
+
+	Pentru rezolvarea task-ului 4 am compus un mesaj cu acelasi header de
+autentificare, cookieurile salvate din ultimul raspuns de la server, dar
+de aceasta data fara parametrii URL.
+	Mesajul trimis catre server este de tip GET.
+
+
+
+
+	Pentru etapa a 5 a repet pasii pentru cookieuri, JSON si extrag datele
+necesare pentru a avea intr-un string doar numele serverului de vreme
+("api.openweathermap.org") si continuarea url-ului ("/data/2.5/weather").
+	Impreuna cu aceste informatii si cele din queryParams fac o cerere
+de tip GET catre acest server. Dar pentru a obtine adresa IP a acestui
+server ma folosesc de laboratorul de DNS, functia getIp(). Am modificat aceasta
+functie astfel incat sa imi extraga decat primul IP din lista primita
+si sa il converteasca in format ASCII intr-o zona alocata. 
+	Dupa momente bune de asteptare a raspunsului de la serverul
+de vreme, retin linia care contine JSON-ul si pointerul catre acest
+nou JSON va reprezenta campul form_data din cererea de tip POST.
+	Dupa compunerea mesajului cu noul JSON, ultimul tip necesar, header-ul
+cu token-ul de autentificare si ultimele cookieuri extrase, il trimit catre
+serverul cu tema si treasure hunt-ul se termina.
+	La finalul ultimei etape inchid socket-ul cu serverul si eliberez
+zonele de memorie alocate si gata. 
